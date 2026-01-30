@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billiard Score App</title>
+    <title>Billiard Score App - Firebase</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
@@ -35,24 +37,11 @@
             width: 100%;
             position: relative;
         }
-
-        /* Responsive layout for landscape mode */
         @media (min-width: 600px) {
-            body {
-                flex-direction: column;
-                justify-content: center;
-            }
-            .main-content {
-                flex-direction: row;
-                justify-content: center;
-                gap: 2rem;
-            }
-            .button-container {
-                flex-direction: row;
-                margin-top: 2rem;
-            }
+            body { flex-direction: column; justify-content: center; }
+            .main-content { flex-direction: row; justify-content: center; gap: 2rem; }
+            .button-container { flex-direction: row; margin-top: 2rem; }
         }
-
         .score-section {
             display: grid;
             grid-template-rows: auto 1fr;
@@ -106,11 +95,9 @@
             outline: none;
             flex-grow: 1;
             max-width: 15ch;
-            pointer-events: none;
+            pointer-events: none; /* Chi cho phep sua khi active */
         }
-        .score-section.active .name-input {
-            pointer-events: auto;
-        }
+        .score-section.active .name-input { pointer-events: auto; }
         .stats-container {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -127,35 +114,6 @@
             color: #4a5568;
             text-align: center;
         }
-
-        /* Thêm hiệu ứng mới: zoom, đổi màu và lắc */
-        .stats.win-effect {
-            animation: win-effect-animation 3s forwards;
-        }
-
-        @keyframes win-effect-animation {
-            0% { transform: scale(1); color: #4a5568; }
-            5% { transform: scale(1.5) rotate(5deg); }
-            10% { transform: scale(1.5) rotate(-5deg); }
-            15% { transform: scale(1.5) rotate(5deg); }
-            20% { transform: scale(1.5) rotate(-5deg); }
-            25% { transform: scale(1.5) rotate(0deg); }
-            50% { transform: scale(1.5); }
-            100% { transform: scale(1); }
-        }
-
-        .high-score-display {
-            position: absolute;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #ef4444;
-            z-index: 15;
-            pointer-events: none;
-        }
-
         .score-area {
             display: grid;
             grid-template-rows: 1fr 1fr;
@@ -165,73 +123,45 @@
             background-color: transparent;
             gap: 4px;
         }
-        .score-area .top, .score-area .bottom {
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-        }
-        .score-area.player-1 .top {
-             background-color: #fce303;
-        }
-        .score-area.player-1 .bottom {
-            background-color: #fce303;
-        }
-        .score-area.player-2 .top {
-            background-color: #fff;
-        }
-        .score-area.player-2 .bottom {
-            background-color: #fff;
-        }
-        .score-area .top:active, .score-area .bottom:active {
-            transform: scale(0.98);
-        }
+        .score-area .top, .score-area .bottom { cursor: pointer; }
+        .score-area.player-1 .top, .score-area.player-1 .bottom { background-color: #fce303; }
+        .score-area.player-2 .top, .score-area.player-2 .bottom { background-color: #fff; }
+        .score-area .top:active, .score-area .bottom:active { transform: scale(0.98); }
         .button-container {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            width: 100%;
-            margin-top: 1rem;
+            display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1rem; width: 100%; margin-top: 1rem;
         }
-        @media (min-width: 600px) {
-            .button-container {
-                width: 100%;
-                max-width: 600px;
-                flex-direction: row;
-            }
-        }
+        @media (min-width: 600px) { .button-container { width: 100%; max-width: 600px; flex-direction: row; } }
         .billiard-button {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.4);
-            transition: transform 0.1s;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            color: #2d3748;
-        }
-        .billiard-button:active {
-            transform: scale(0.95);
+            width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.4); border: none; cursor: pointer; font-weight: bold; color: #2d3748;
         }
         .bg-white { background-color: #fff; }
         .bg-yellow-400 { background-color: #facc15; }
         .bg-red-500 { background-color: #ef4444; color: white; }
+        .bg-blue-500 { background-color: #3b82f6; color: white; }
+        
+        #qrModal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 50;
+        }
+        #qrContent {
+            background: white; padding: 20px; border-radius: 10px; text-align: center; color: #333;
+        }
+        #statusIndicator {
+            position: absolute; top: 10px; right: 10px; font-size: 0.8rem; color: #a3bffa;
+        }
     </style>
 </head>
 <body class="bg-[#2b6cb0] text-white">
 
+    <div id="statusIndicator">Connecting...</div>
+
     <div class="container mx-auto">
         <h2 id="round-counter" class="text-xl font-bold mb-4">Round: 1</h2>
         <div class="main-content">
-            <!-- Player 1 section -->
             <div id="player1" class="score-section w-full">
                 <div class="name-container">
-                    <input type="text" class="name-input" value="Player 1" maxlength="10">
+                    <input type="text" class="name-input" id="name1" value="Player 1">
                 </div>
                 <div class="stats-container player-1">
                     <span class="stats wins-1">Win: 0</span>
@@ -239,16 +169,15 @@
                     <span class="stats shots-1">Inn: 0</span>
                 </div>
                 <div class="score-area player-1">
-                    <span class="score-display">0</span>
-                    <div class="top" data-player="player1" data-value="1"></div>
-                    <div class="bottom" data-player="player1" data-value="-1"></div>
+                    <span class="score-display" id="score1">0</span>
+                    <div class="top" data-id="player1" data-val="1"></div>
+                    <div class="bottom" data-id="player1" data-val="-1"></div>
                 </div>
             </div>
 
-            <!-- Player 2 section -->
             <div id="player2" class="score-section w-full">
                 <div class="name-container">
-                    <input type="text" class="name-input" value="Player 2" maxlength="10">
+                    <input type="text" class="name-input" id="name2" value="Player 2">
                 </div>
                 <div class="stats-container player-2">
                     <span class="stats wins-2">Win: 0</span>
@@ -256,248 +185,223 @@
                     <span class="stats shots-2">Inn: 0</span>
                 </div>
                 <div class="score-area player-2">
-                    <span class="score-display">0</span>
-                    <div class="top" data-player="player2" data-value="1"></div>
-                    <div class="bottom" data-player="player2" data-value="-1"></div>
+                    <span class="score-display" id="score2">0</span>
+                    <div class="top" data-id="player2" data-val="1"></div>
+                    <div class="bottom" data-id="player2" data-val="-1"></div>
                 </div>
             </div>
         </div>
         
         <div class="button-container">
-            <!-- Bi trắng - Reset All -->
             <button id="resetBtn" class="billiard-button bg-white">Reset</button>
-            <!-- Bi đỏ - End Round -->
             <button id="endRoundBtn" class="billiard-button bg-red-500">End</button>
-            <!-- Bi vàng - Swap Colors -->
             <button id="swapColorsBtn" class="billiard-button bg-yellow-400">Swap</button>
+            <button id="qrBtn" class="billiard-button bg-blue-500">QR</button>
         </div>
     </div>
 
-    <div id="messageBox"></div>
+    <div id="qrModal">
+        <div id="qrContent">
+            <h3 class="text-xl font-bold mb-2 text-black">Scan Code</h3>
+            <div id="qrCodeDiv" class="flex justify-center my-4"></div>
+            <p class="text-sm text-gray-600 mb-4">Dieu khien bang dien thoai</p>
+            <button id="closeQrBtn" class="px-4 py-2 bg-red-500 text-white rounded">Close</button>
+        </div>
+    </div>
 
-    <script>
-        // Lấy các phần tử HTML
-        const endRoundBtn = document.getElementById('endRoundBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const swapColorsBtn = document.getElementById('swapColorsBtn');
-        const messageBox = document.getElementById('messageBox');
-        const roundCounter = document.getElementById('round-counter');
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // --- CAU HINH FIREBASE (THAY DOI PHAN NAY) ---
+        // Ban hay copy config tu Firebase Console va dan vao day
+        const firebaseConfig = {
+  apiKey: "AIzaSyBoWo-lMgjQhSh1u9TfWrcccmi2-I8LNGA",
+  authDomain: "billardscore-cb6c7.firebaseapp.com",
+  projectId: "billardscore-cb6c7",
+  storageBucket: "billardscore-cb6c7.firebasestorage.app",
+  messagingSenderId: "842955224618",
+  appId: "1:842955224618:web:b6c944a884cedbfd93b553"
+};
+
+        // Khoi tao Firebase
+        let app, db, matchRef;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+        } catch (e) {
+            console.error("Loi Firebase Config", e);
+            document.getElementById('statusIndicator').textContent = "Config Error!";
+        }
+
+        // --- LOGIC MA TRAN DAU (Match ID) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let matchId = urlParams.get('m');
+
+        if (!matchId) {
+            // Tao ID ngau nhien neu chua co
+            matchId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            // Them vao URL ma khong reload
+            window.history.replaceState({}, '', `?m=${matchId}`);
+        }
         
-        // Trạng thái của ứng dụng
-        let state = {
-            player1: { score: 0, wins: 0, shots: 0, currentTurnScore: 0 },
-            player2: { score: 0, wins: 0, shots: 0, currentTurnScore: 0 },
-            rounds: 1
+        // Reference toi DB
+        matchRef = ref(db, 'matches/' + matchId);
+
+        // State mac dinh
+        let localState = {
+            p1: { score: 0, wins: 0, shots: 0 },
+            p2: { score: 0, wins: 0, shots: 0 },
+            names: { p1: "Player 1", p2: "Player 2" },
+            round: 1,
+            turn: null, // "p1" hoac "p2"
+            colorSwap: false
         };
 
-        // Biến để theo dõi lượt đánh hiện tại
-        let currentPlayer = null;
-
-        // Hàm cập nhật trạng thái hoạt động của bảng điểm
-        function updateActivePlayerUI() {
-            const player1Section = document.getElementById('player1');
-            const player2Section = document.getElementById('player2');
-            if (currentPlayer === 'player1') {
-                player1Section.classList.add('active');
-                player2Section.classList.remove('active');
-            } else if (currentPlayer === 'player2') {
-                player2Section.classList.add('active');
-                player1Section.classList.remove('active');
+        // --- DONG BO DU LIEU (SYNC) ---
+        onValue(matchRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                localState = data;
+                updateUI();
+                document.getElementById('statusIndicator').textContent = "Live: " + matchId;
             } else {
-                player1Section.classList.remove('active');
-                player2Section.classList.remove('active');
+                // Neu chua co data tren server, day data mac dinh len
+                set(matchRef, localState);
             }
-        }
-
-        // Hàm hiển thị thông báo
-        function showMessage(msg) {
-            messageBox.textContent = msg;
-            messageBox.style.opacity = 1;
-            setTimeout(() => {
-                messageBox.style.opacity = 0;
-            }, 2000);
-        }
-
-        // Hàm cập nhật điểm mà không có hiệu ứng
-        function updateScore(playerId, value) {
-            const playerElement = document.getElementById(playerId);
-            const scoreDisplay = playerElement.querySelector('.score-display');
-            
-            state[playerId].currentTurnScore += value;
-            
-            let newScore = state[playerId].score + value;
-            if (newScore < 0) {
-                newScore = 0;
-            }
-            state[playerId].score = newScore;
-            
-            updateAVG(playerId);
-            
-            // Cập nhật điểm ngay lập tức, bỏ qua hiệu ứng "flip"
-            scoreDisplay.textContent = state[playerId].score;
-        }
-        
-        // Hàm cập nhật AVG
-        function updateAVG(playerId) {
-            const playerElement = document.getElementById(playerId);
-            if (state[playerId].shots > 0) {
-                const avg = state[playerId].score / state[playerId].shots;
-                playerElement.querySelector(`.stats.avg-${playerId.slice(-1)}`).textContent = `AVG: ${avg.toFixed(2)}`;
-            } else {
-                 playerElement.querySelector(`.stats.avg-${playerId.slice(-1)}`).textContent = `AVG: 0.00`;
-            }
-        }
-
-        // Hàm để tạo màu ngẫu nhiên
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-
-        // Hàm kết thúc hiệp đấu
-        function endRound() {
-            const player1Name = document.getElementById('player1').querySelector('.name-input').value;
-            const player2Name = document.getElementById('player2').querySelector('.name-input').value;
-
-            let winner = null;
-            if (state.player1.score > state.player2.score) {
-                state.player1.wins++;
-                winner = 'player1';
-            } else if (state.player2.score > state.player1.score) {
-                state.player2.wins++;
-                winner = 'player2';
-            }
-
-            document.querySelector('.stats.wins-1').textContent = `Win: ${state.player1.wins}`;
-            document.querySelector('.stats.wins-2').textContent = `Win: ${state.player2.wins}`;
-            
-            if (winner) {
-                const winnerWinsElement = document.getElementById(winner).querySelector(`.stats.wins-${winner.slice(-1)}`);
-                winnerWinsElement.classList.add('win-effect');
-                winnerWinsElement.style.color = getRandomColor();
-
-                setTimeout(() => {
-                    winnerWinsElement.classList.remove('win-effect');
-                    winnerWinsElement.style.color = '#4a5568';
-                }, 3000);
-            }
-
-            state.player1.score = 0;
-            state.player1.shots = 0;
-            state.player1.currentTurnScore = 0;
-            state.player2.score = 0;
-            state.player2.shots = 0;
-            state.player2.currentTurnScore = 0;
-            currentPlayer = null;
-            updateActivePlayerUI();
-
-            document.getElementById('player1').querySelector('.score-display').textContent = 0;
-            document.getElementById('player2').querySelector('.score-display').textContent = 0;
-            document.getElementById('player1').querySelector(`.stats.shots-1`).textContent = `Inn: 0`;
-            document.getElementById('player2').querySelector(`.stats.shots-2`).textContent = `Inn: 0`;
-            document.getElementById('player1').querySelector(`.stats.avg-1`).textContent = `AVG: 0.00`;
-            document.getElementById('player2').querySelector(`.stats.avg-2`).textContent = `AVG: 0.00`;
-            
-            state.rounds++;
-            roundCounter.textContent = `Round: ${state.rounds}`;
-        }
-
-        // Hàm đặt lại tất cả điểm và số trận thắng
-        function resetAll() {
-            state.player1.score = 0;
-            state.player1.wins = 0;
-            state.player1.shots = 0;
-            state.player1.currentTurnScore = 0;
-            state.player2.score = 0;
-            state.player2.wins = 0;
-            state.player2.shots = 0;
-            state.player2.currentTurnScore = 0;
-            state.rounds = 1;
-            currentPlayer = null;
-            updateActivePlayerUI();
-
-            const scoreSpans = document.querySelectorAll('.score-display');
-            scoreSpans.forEach(span => {
-                span.textContent = 0;
-            });
-            
-            document.querySelector('.stats.wins-1').textContent = `Win: 0`;
-            document.querySelector('.stats.shots-1').textContent = `Inn: 0`;
-            document.querySelector('.stats.wins-2').textContent = `Win: 0`;
-            document.querySelector('.stats.shots-2').textContent = `Inn: 0`;
-            document.querySelector('.stats.avg-1').textContent = `AVG: 0.00`;
-            document.querySelector('.stats.avg-2').textContent = `AVG: 0.00`;
-
-            roundCounter.textContent = `Round: 1`;
-        }
-
-        // Hàm hoán vị màu của các bảng điểm
-        function swapColors() {
-            const player1Area = document.querySelector('.score-area.player-1');
-            const player2Area = document.querySelector('.score-area.player-2');
-            
-            if (player1Area.classList.contains('player-1')) {
-                player1Area.classList.remove('player-1');
-                player1Area.classList.add('player-2');
-                player2Area.classList.remove('player-2');
-                player2Area.classList.add('player-1');
-            } else {
-                player1Area.classList.remove('player-2');
-                player1Area.classList.add('player-1');
-                player2Area.classList.remove('player-1');
-                player2Area.classList.add('player-2');
-            }
-        }
-
-        // Thêm sự kiện click cho các khu vực điểm
-        document.addEventListener('DOMContentLoaded', () => {
-            const player1Section = document.getElementById('player1');
-            const player2Section = document.getElementById('player2');
-            
-            player1Section.addEventListener('click', (event) => {
-                const playerId = event.currentTarget.id;
-                const value = parseInt(event.target.dataset.value);
-
-                if (playerId !== currentPlayer) {
-                    currentPlayer = playerId;
-                    updateActivePlayerUI();
-                    state[playerId].shots++;
-                    document.getElementById(playerId).querySelector(`.stats.shots-${playerId.slice(-1)}`).textContent = `Inn: ${state[playerId].shots}`;
-                    updateAVG(playerId);
-                    state[playerId].currentTurnScore = 0;
-                } else if (!isNaN(value)) {
-                    updateScore(playerId, value);
-                }
-            });
-
-            player2Section.addEventListener('click', (event) => {
-                const playerId = event.currentTarget.id;
-                const value = parseInt(event.target.dataset.value);
-
-                if (playerId !== currentPlayer) {
-                    currentPlayer = playerId;
-                    updateActivePlayerUI();
-                    state[playerId].shots++;
-                    document.getElementById(playerId).querySelector(`.stats.shots-${playerId.slice(-1)}`).textContent = `Inn: ${state[playerId].shots}`;
-                    updateAVG(playerId);
-                    state[playerId].currentTurnScore = 0;
-                } else if (!isNaN(value)) {
-                    updateScore(playerId, value);
-                }
-            });
-
-            // Thêm sự kiện click cho các nút
-            endRoundBtn.addEventListener('click', endRound);
-            resetBtn.addEventListener('click', resetAll);
-            swapColorsBtn.addEventListener('click', swapColors);
-
-            // Cập nhật trạng thái UI ban đầu
-            updateActivePlayerUI();
         });
+
+        // --- HAM CAP NHAT GIAO DIEN (UI) ---
+        function updateUI() {
+            // Cap nhat diem
+            document.getElementById('score1').textContent = localState.p1.score;
+            document.getElementById('score2').textContent = localState.p2.score;
+            
+            // Cap nhat ten
+            if(document.activeElement.id !== 'name1') document.getElementById('name1').value = localState.names.p1;
+            if(document.activeElement.id !== 'name2') document.getElementById('name2').value = localState.names.p2;
+
+            // Cap nhat stats
+            updateStats('p1', '1');
+            updateStats('p2', '2');
+
+            // Cap nhat Round
+            document.getElementById('round-counter').textContent = `Round: ${localState.round}`;
+
+            // Active Player (Mau vien sang)
+            document.getElementById('player1').classList.remove('active');
+            document.getElementById('player2').classList.remove('active');
+            if (localState.turn === 'p1') document.getElementById('player1').classList.add('active');
+            if (localState.turn === 'p2') document.getElementById('player2').classList.add('active');
+
+            // Swap Colors
+            const p1Area = document.querySelector('.score-area.player-1');
+            const p2Area = document.querySelector('.score-area.player-2');
+            
+            // Reset class
+            p1Area.className = "score-area player-1";
+            p2Area.className = "score-area player-2";
+
+            if (localState.colorSwap) {
+                // Logic dao nguoc mau
+                p1Area.classList.remove('player-1'); p1Area.classList.add('player-2');
+                p2Area.classList.remove('player-2'); p2Area.classList.add('player-1');
+            }
+        }
+
+        function updateStats(pKey, suffix) {
+            const s = localState[pKey];
+            document.querySelector(`.stats.wins-${suffix}`).textContent = `Win: ${s.wins}`;
+            document.querySelector(`.stats.shots-${suffix}`).textContent = `Inn: ${s.shots}`;
+            let avg = s.shots > 0 ? (s.score / s.shots).toFixed(2) : "0.00";
+            document.querySelector(`.stats.avg-${suffix}`).textContent = `AVG: ${avg}`;
+        }
+
+        // --- HAM GUI DU LIEU LEN SERVER ---
+        function pushState() {
+            update(matchRef, localState);
+        }
+
+        // --- XU LY SU KIEN CLICK ---
+        
+        // 1. Click vao vung diem
+        const handleScore = (pKey, val) => {
+            // Chuyen luot neu can
+            if (localState.turn !== pKey) {
+                localState.turn = pKey;
+                localState[pKey].shots += 1;
+            }
+            
+            if (val !== 0) {
+                let newScore = localState[pKey].score + val;
+                if (newScore < 0) newScore = 0;
+                localState[pKey].score = newScore;
+            }
+            pushState();
+        };
+
+        // Gan su kien click cho cac vung
+        document.querySelectorAll('.top, .bottom').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const pid = e.target.getAttribute('data-id') === 'player1' ? 'p1' : 'p2';
+                const val = parseInt(e.target.getAttribute('data-val'));
+                handleScore(pid, val);
+            });
+        });
+
+        // 2. Click cac nut chuc nang
+        document.getElementById('endRoundBtn').addEventListener('click', () => {
+            // Tinh thang thua
+            if (localState.p1.score > localState.p2.score) localState.p1.wins++;
+            else if (localState.p2.score > localState.p1.score) localState.p2.wins++;
+            
+            // Reset diem cho van moi
+            localState.p1.score = 0;
+            localState.p1.shots = 0;
+            localState.p2.score = 0;
+            localState.p2.shots = 0;
+            localState.turn = null;
+            localState.round++;
+            pushState();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if(!confirm("Reset all data?")) return;
+            localState.p1 = { score: 0, wins: 0, shots: 0 };
+            localState.p2 = { score: 0, wins: 0, shots: 0 };
+            localState.round = 1;
+            localState.turn = null;
+            localState.colorSwap = false;
+            pushState();
+        });
+
+        document.getElementById('swapColorsBtn').addEventListener('click', () => {
+            localState.colorSwap = !localState.colorSwap;
+            pushState();
+        });
+
+        // 3. Thay doi ten
+        const handleNameChange = (e) => {
+            const pKey = e.target.id === 'name1' ? 'p1' : 'p2';
+            localState.names[pKey] = e.target.value;
+            pushState();
+        };
+        document.getElementById('name1').addEventListener('change', handleNameChange);
+        document.getElementById('name2').addEventListener('change', handleNameChange);
+
+        // 4. QR Code
+        document.getElementById('qrBtn').addEventListener('click', () => {
+            const qrDiv = document.getElementById('qrCodeDiv');
+            qrDiv.innerHTML = "";
+            const url = window.location.href;
+            new QRCode(qrDiv, { text: url, width: 200, height: 200 });
+            document.getElementById('qrModal').style.display = 'flex';
+        });
+
+        document.getElementById('closeQrBtn').addEventListener('click', () => {
+            document.getElementById('qrModal').style.display = 'none';
+        });
+
     </script>
 </body>
 </html>
