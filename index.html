@@ -3,241 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bang Diem Bida Online</title>
+    <title>Billiard Score App - Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
     <style>
-        /* Import font chu */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        
         body {
             font-family: 'Inter', sans-serif;
             background-color: #2b6cb0;
             color: white;
             display: flex;
             flex-direction: column;
+            justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
             box-sizing: border-box;
         }
-
         .container {
             width: 100%;
-            max-width: 800px;
+            max-width: 600px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            flex-grow: 1;
         }
-
-        .header-info {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 1rem;
-            align-items: center;
-        }
-
         .main-content {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            justify-content: center;
+            align-items: center;
             width: 100%;
+            position: relative;
         }
 
-        @media (min-width: 768px) {
+        /* Responsive layout for landscape mode */
+        @media (min-width: 600px) {
+            body {
+                flex-direction: column;
+                justify-content: center;
+            }
             .main-content {
                 flex-direction: row;
+                justify-content: center;
+                gap: 2rem;
+            }
+            .button-container {
+                flex-direction: row;
+                margin-top: 2rem;
             }
         }
 
-        .player-card {
-            background-color: #2d3748;
+        .score-section {
+            display: grid;
+            grid-template-rows: auto 1fr;
             border: 2px solid #4a5568;
             border-radius: 1rem;
             overflow: hidden;
-            flex: 1;
+            margin-bottom: 1rem;
+            background-color: #2d3748;
+            box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            height: 300px;
             position: relative;
+            flex-grow: 1;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out;
+            transform: scale(0.9);
+            opacity: 0.8;
+        }
+        .score-section.active {
+            transform: scale(1.05);
+            border-color: #fca5a5;
+            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.4);
+            opacity: 1;
+        }
+        .score-display {
+            font-size: 10rem;
+            font-weight: bold;
+            color: #ef4444;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            z-index: 10;
+            pointer-events: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .name-container {
             display: flex;
-            flex-direction: column;
-            height: 350px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: all 0.3s;
+            justify-content: center;
+            align-items: center;
+            padding: 0 0.5rem;
+            background-color: #2d3748;
+            z-index: 20;
         }
-
-        .player-card.active {
-            border-color: #fbbf24;
-            box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
-            transform: scale(1.02);
-        }
-
         .name-input {
-            background: transparent;
+            background: none;
             border: none;
             color: white;
             font-size: 1.5rem;
             font-weight: bold;
             text-align: center;
-            width: 100%;
-            padding: 0.5rem;
             outline: none;
-            border-bottom: 1px solid #4a5568;
-            z-index: 20;
-        }
-
-        .score-display {
-            font-size: 8rem;
-            font-weight: bold;
-            color: #ef4444;
-            text-align: center;
             flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            z-index: 10;
-            pointer-events: none;
+            max-width: 15ch; 
+            pointer-events: auto; /* Cho phep nhap ten moi luc */
         }
-
-        .click-zone {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 5;
-        }
-
-        .btn-up, .btn-down {
-            flex: 1;
-            width: 100%;
-            opacity: 0.1;
-            transition: opacity 0.2s;
-            cursor: pointer;
-        }
-
-        .bg-yellow-zone { background-color: #facc15; }
-        .bg-white-zone { background-color: #ffffff; }
-
-        .btn-up:active, .btn-down:active {
-            opacity: 0.3;
-        }
-
-        .stats-row {
+        .stats-container {
             display: flex;
             justify-content: space-around;
-            padding: 0.5rem;
-            background-color: rgba(0,0,0,0.2);
-            font-weight: bold;
-            font-size: 0.9rem;
-            color: #cbd5e0;
+            position: absolute;
+            bottom: 0.5rem;
+            left: 0;
+            width: 100%;
             z-index: 20;
         }
-
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            justify-content: center;
-        }
-
-        .btn-control {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
+        .stats {
+            font-size: 1rem;
             font-weight: bold;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
+            color: #4a5568;
         }
 
-        .btn-control:active { transform: scale(0.95); }
-        .btn-reset { background-color: #e2e8f0; color: #1a202c; }
-        .btn-end { background-color: #e53e3e; color: white; }
-        .btn-swap { background-color: #d69e2e; color: white; }
-        .btn-qr { background-color: #38a169; color: white; }
+        .stats.win-effect {
+            animation: win-effect-animation 3s forwards;
+        }
 
-        #qr-container {
+        @keyframes win-effect-animation {
+            0% { transform: scale(1); color: #4a5568; }
+            5% { transform: scale(1.5) rotate(5deg); }
+            10% { transform: scale(1.5) rotate(-5deg); }
+            15% { transform: scale(1.5) rotate(5deg); }
+            20% { transform: scale(1.5) rotate(-5deg); }
+            25% { transform: scale(1.5) rotate(0deg); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        .score-area {
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background-color: transparent;
+            gap: 4px;
+        }
+        .score-area .top {
+            transition: background-color 0.2s, transform 0.1s;
+            border-bottom: none;
+        }
+        .score-area .bottom {
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        /* Class mau sac duoc dieu khien boi JS */
+        .color-style-1 .top, .color-style-1 .bottom { background-color: #fce303; }
+        .color-style-2 .top, .color-style-2 .bottom { background-color: #fff; }
+
+        .score-area .top:active, .score-area .bottom:active {
+            transform: scale(0.98);
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
             margin-top: 1rem;
-            background: white;
-            padding: 1rem;
-            border-radius: 1rem;
+        }
+        @media (min-width: 600px) {
+            .button-container {
+                width: 100%;
+                max-width: 600px;
+                flex-direction: row;
+            }
+        }
+        .end-round-button, .reset-button, .swap-colors-button, .qr-button {
+            background-color: #2b6cb0;
+            color: white;
+            font-weight: bold;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.4);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .end-round-button { background-color: #48bb78; }
+        .end-round-button:hover { background-color: #38a169; }
+        .reset-button:hover { background-color: #2c5282; }
+        .swap-colors-button { background-color: #d97706; }
+        .swap-colors-button:hover { background-color: #b45309; }
+        .qr-button { background-color: #10b981; } /* Mau xanh la */
+        .qr-button:hover { background-color: #059669; }
+
+        .end-round-button:active, .reset-button:active, .swap-colors-button:active, .qr-button:active {
+            transform: scale(0.98);
+        }
+       
+        #messageBox {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        @keyframes score-flip {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            51% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .score-display.flip {
+            animation: score-flip 0.5s ease-in-out;
+        }
+
+        /* QR Code Container */
+        #qr-container {
             display: none;
             flex-direction: column;
             align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        #qr-container p { color: black; margin-bottom: 0.5rem; font-weight: bold; }
+        #qr-container p { color: #2d3748; margin-bottom: 10px; font-weight: bold; }
+        .close-qr {
+            margin-top: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
 </head>
-<body>
+<body class="bg-[#2b6cb0] text-white">
 
-    <div class="container">
-        <div class="header-info">
-            <h1 class="text-2xl font-bold">Bida 3 Bang</h1>
-            <div class="text-xl bg-blue-800 px-4 py-1 rounded-lg">
-                Hiep: <span id="round-count">1</span>
-            </div>
-        </div>
-
+    <div class="container mx-auto">
+        <h2 id="round-counter" class="text-xl font-bold mb-4">Round: 1</h2>
         <div class="main-content">
-            <div id="p1-card" class="player-card">
-                <input type="text" id="p1-name" class="name-input" value="Nguoi 1">
-                
-                <div class="click-zone" id="p1-zone">
-                    <div class="btn-up bg-yellow-zone" onclick="changeScore('p1', 1)"></div>
-                    <div class="btn-down bg-yellow-zone" onclick="changeScore('p1', -1)"></div>
+            <div id="player1" class="score-section w-full">
+                <div class="name-container">
+                    <input type="text" id="name1" class="name-input" value="Player 1" maxlength="10">
                 </div>
-
-                <div class="score-display" id="p1-score">0</div>
-
-                <div class="stats-row">
-                    <span>Thang: <span id="p1-wins">0</span></span>
-                    <span>Luot co: <span id="p1-inn">0</span></span>
-                    <span>TB: <span id="p1-avg">0.00</span></span>
+                <div class="stats-container player-1">
+                    <span class="stats wins-1">Win: 0</span>
+                    <span class="stats avg-1">AVG: 0.00</span>
+                    <span class="stats shots-1">Inn: 0</span>
+                </div>
+                <div class="score-area color-style-1">
+                    <span class="score-display">0</span>
+                    <div class="top" data-player="player1" data-value="1"></div>
+                    <div class="bottom" data-player="player1" data-value="-1"></div>
                 </div>
             </div>
 
-            <div id="p2-card" class="player-card">
-                <input type="text" id="p2-name" class="name-input" value="Nguoi 2">
-                
-                <div class="click-zone" id="p2-zone">
-                    <div class="btn-up bg-white-zone" onclick="changeScore('p2', 1)"></div>
-                    <div class="btn-down bg-white-zone" onclick="changeScore('p2', -1)"></div>
+            <div id="player2" class="score-section w-full">
+                <div class="name-container">
+                    <input type="text" id="name2" class="name-input" value="Player 2" maxlength="10">
                 </div>
-
-                <div class="score-display" id="p2-score">0</div>
-
-                <div class="stats-row">
-                    <span>Thang: <span id="p2-wins">0</span></span>
-                    <span>Luot co: <span id="p2-inn">0</span></span>
-                    <span>TB: <span id="p2-avg">0.00</span></span>
+                <div class="stats-container player-2">
+                    <span class="stats wins-2">Win: 0</span>
+                    <span class="stats avg-2">AVG: 0.00</span>
+                    <span class="stats shots-2">Inn: 0</span>
+                </div>
+                <div class="score-area color-style-2">
+                    <span class="score-display">0</span>
+                    <div class="top" data-player="player2" data-value="1"></div>
+                    <div class="bottom" data-player="player2" data-value="-1"></div>
                 </div>
             </div>
         </div>
-
-        <div class="controls">
-            <button class="btn-control btn-reset" onclick="resetGame()">Dat Lai (Reset)</button>
-            <button class="btn-control btn-end" onclick="endRound()">Ket Thuc Hiep</button>
-            <button class="btn-control btn-swap" onclick="swapColor()">Doi Mau Bi</button>
-            <button class="btn-control btn-qr" onclick="toggleQR()">Tao Ma QR</button>
+        
+        <div class="button-container">
+            <button class="end-round-button" id="endRoundBtn">End Round</button>
+            <button class="reset-button" id="resetBtn">Reset All</button>
+            <button class="swap-colors-button" id="swapColorsBtn">Swap Colors</button>
+            <button class="qr-button" id="qrBtn">QR Code</button>
         </div>
+    </div>
 
-        <div id="qr-container">
-            <p>Quet ma de dieu khien chung:</p>
-            <div id="qrcode"></div>
-        </div>
+    <div id="messageBox"></div>
+
+    <div id="qr-container">
+        <p>Quet ma de dieu khien</p>
+        <div id="qrcode"></div>
+        <button class="close-qr" onclick="document.getElementById('qr-container').style.display='none'">Dong</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- CAU HINH FIREBASE CUA BAN ---
+        // Cau hinh Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAjAWxH4vaiioTvcKPDae8weW8fr0EoN7M",
             authDomain: "blscore.firebaseapp.com",
@@ -255,173 +331,207 @@
         // --- QUAN LY ROOM ID ---
         const urlParams = new URLSearchParams(window.location.search);
         let roomId = urlParams.get('room');
-
-        // Tu dong tao Room ID neu chua co
+        
         if (!roomId) {
             roomId = Math.random().toString(36).substring(2, 7).toUpperCase();
             const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?room=' + roomId;
             window.history.pushState({path: newUrl}, '', newUrl);
         }
 
-        const roomRef = ref(db, 'phong_choi/' + roomId);
+        const roomRef = ref(db, 'rooms/' + roomId);
 
-        // --- STATE MAC DINH ---
-        let gameState = {
-            round: 1,
-            swapped: false,
-            activePlayer: null,
-            p1: { name: "Nguoi 1", score: 0, wins: 0, innings: 0 },
-            p2: { name: "Nguoi 2", score: 0, wins: 0, innings: 0 }
+        // --- TRANG THAI CUA UNG DUNG (STATE) ---
+        // Dua tat ca bien vao state de dong bo
+        let state = {
+            player1: { name: "Player 1", score: 0, wins: 0, shots: 0 },
+            player2: { name: "Player 2", score: 0, wins: 0, shots: 0 },
+            rounds: 1,
+            currentPlayer: null,
+            isSwapped: false, // Bien de theo doi doi mau
+            timestamp: Date.now()
         };
 
-        // --- DONG BO DU LIEU ---
-        
-        // Day du lieu len Server
-        function syncData() {
-            set(roomRef, gameState);
+        // --- DONG BO DU LIEU LEN FIREBASE ---
+        function syncState() {
+            state.timestamp = Date.now();
+            set(roomRef, state);
         }
 
-        // Lang nghe du lieu tu Server
+        // --- LANG NGHE DU LIEU TU FIREBASE ---
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                gameState = data;
+                // Cap nhat state cuc bo tu server
+                state = data;
+                // Cap nhat giao dien
                 renderUI();
             } else {
-                syncData(); // Tao phong moi
+                // Phong moi, day du lieu mac dinh len
+                syncState();
             }
         });
 
-        // --- CAP NHAT GIAO DIEN ---
+        // --- HAM CAP NHAT GIAO DIEN (RENDER) ---
         function renderUI() {
-            // Ten
-            document.getElementById('p1-name').value = gameState.p1.name;
-            document.getElementById('p2-name').value = gameState.p2.name;
+            // Cap nhat ten
+            const input1 = document.getElementById('name1');
+            const input2 = document.getElementById('name2');
+            if (document.activeElement !== input1) input1.value = state.player1.name;
+            if (document.activeElement !== input2) input2.value = state.player2.name;
 
-            // Diem
-            document.getElementById('p1-score').textContent = gameState.p1.score;
-            document.getElementById('p2-score').textContent = gameState.p2.score;
+            // Cap nhat Round
+            document.getElementById('round-counter').textContent = `Round: ${state.rounds}`;
 
-            // Thong so
-            document.getElementById('p1-wins').textContent = gameState.p1.wins;
-            document.getElementById('p2-wins').textContent = gameState.p2.wins;
-            document.getElementById('p1-inn').textContent = gameState.p1.innings;
-            document.getElementById('p2-inn').textContent = gameState.p2.innings;
+            // Cap nhat thong so Player 1
+            updatePlayerDOM('player1', state.player1);
+            // Cap nhat thong so Player 2
+            updatePlayerDOM('player2', state.player2);
 
-            // Diem trung binh
-            let avg1 = gameState.p1.innings > 0 ? (gameState.p1.score / gameState.p1.innings).toFixed(2) : "0.00";
-            let avg2 = gameState.p2.innings > 0 ? (gameState.p2.score / gameState.p2.innings).toFixed(2) : "0.00";
-            document.getElementById('p1-avg').textContent = avg1;
-            document.getElementById('p2-avg').textContent = avg2;
-
-            document.getElementById('round-count').textContent = gameState.round;
-
-            // Mau sac bi
-            const zone1 = document.getElementById('p1-zone').children;
-            const zone2 = document.getElementById('p2-zone').children;
+            // Cap nhat mau sac (Swap)
+            const area1 = document.getElementById('player1').querySelector('.score-area');
+            const area2 = document.getElementById('player2').querySelector('.score-area');
             
-            if (gameState.swapped) {
-                updateColorClass(zone1, 'bg-white-zone', 'bg-yellow-zone');
-                updateColorClass(zone2, 'bg-yellow-zone', 'bg-white-zone');
+            // Xoa class cu
+            area1.classList.remove('color-style-1', 'color-style-2');
+            area2.classList.remove('color-style-1', 'color-style-2');
+
+            if (state.isSwapped) {
+                area1.classList.add('color-style-2');
+                area2.classList.add('color-style-1');
             } else {
-                updateColorClass(zone1, 'bg-yellow-zone', 'bg-white-zone');
-                updateColorClass(zone2, 'bg-white-zone', 'bg-yellow-zone');
+                area1.classList.add('color-style-1');
+                area2.classList.add('color-style-2');
             }
 
-            // Hieu ung Active
-            document.getElementById('p1-card').classList.remove('active');
-            document.getElementById('p2-card').classList.remove('active');
+            // Cap nhat trang thai Active (luot danh)
+            const p1Sec = document.getElementById('player1');
+            const p2Sec = document.getElementById('player2');
+            p1Sec.classList.remove('active');
+            p2Sec.classList.remove('active');
             
-            if (gameState.activePlayer === 'p1') {
-                document.getElementById('p1-card').classList.add('active');
-            } else if (gameState.activePlayer === 'p2') {
-                document.getElementById('p2-card').classList.add('active');
-            }
+            if (state.currentPlayer === 'player1') p1Sec.classList.add('active');
+            if (state.currentPlayer === 'player2') p2Sec.classList.add('active');
         }
 
-        function updateColorClass(elements, addClass, removeClass) {
-            for (let el of elements) {
-                el.classList.add(addClass);
-                el.classList.remove(removeClass);
+        function updatePlayerDOM(pid, pData) {
+            const root = document.getElementById(pid);
+            // Cap nhat diem (co the them hieu ung flip neu muon, o day cap nhat truc tiep de dong bo nhanh)
+            const scoreDisplay = root.querySelector('.score-display');
+            if (scoreDisplay.textContent != pData.score) {
+                scoreDisplay.textContent = pData.score;
+                scoreDisplay.classList.add('flip');
+                setTimeout(() => scoreDisplay.classList.remove('flip'), 250);
             }
+
+            root.querySelector(`.stats.wins-${pid.slice(-1)}`).textContent = `Win: ${pData.wins}`;
+            root.querySelector(`.stats.shots-${pid.slice(-1)}`).textContent = `Inn: ${pData.shots}`;
+            
+            let avg = 0;
+            if (pData.shots > 0) avg = pData.score / pData.shots;
+            root.querySelector(`.stats.avg-${pid.slice(-1)}`).textContent = `AVG: ${avg.toFixed(2)}`;
         }
 
-        // --- HAM GLOBAL (GOI TU HTML) ---
+        // --- CAC HAM LOGIC (SUA DOI DE DONG BO) ---
 
-        window.changeScore = function(player, delta) {
-            if (gameState.activePlayer !== player) {
-                gameState.activePlayer = player;
-                gameState[player].innings += 1;
+        // Xu ly click vao diem
+        window.handleScoreClick = (pid, val) => {
+            if (state.currentPlayer !== pid) {
+                state.currentPlayer = pid;
+                state[pid].shots++;
+                // Reset diem luot danh neu can (logic hien tai khong co bien currentTurnScore rieng biet trong state goc)
+            } else if (val !== undefined && !isNaN(val)) {
+                let newScore = state[pid].score + val;
+                if (newScore < 0) newScore = 0;
+                state[pid].score = newScore;
             }
-            
-            let newScore = gameState[player].score + delta;
-            if (newScore < 0) newScore = 0;
-            
-            gameState[player].score = newScore;
-            syncData();
+            syncState();
         };
 
-        window.endRound = function() {
-            if (!confirm("Ban co chac muon ket thuc hiep nay?")) return;
-
-            if (gameState.p1.score > gameState.p2.score) {
-                gameState.p1.wins++;
-            } else if (gameState.p2.score > gameState.p1.score) {
-                gameState.p2.wins++;
-            }
-
-            gameState.p1.score = 0;
-            gameState.p1.innings = 0;
-            gameState.p2.score = 0;
-            gameState.p2.innings = 0;
-            gameState.activePlayer = null;
-            gameState.round++;
-            
-            syncData();
-        };
-
-        window.resetGame = function() {
-            if (!confirm("Xoa toan bo du lieu va choi lai tu dau?")) return;
-            
-            gameState.round = 1;
-            gameState.activePlayer = null;
-            gameState.p1.score = 0; gameState.p1.wins = 0; gameState.p1.innings = 0;
-            gameState.p2.score = 0; gameState.p2.wins = 0; gameState.p2.innings = 0;
-            
-            syncData();
-        };
-
-        window.swapColor = function() {
-            gameState.swapped = !gameState.swapped;
-            syncData();
-        };
-
-        window.toggleQR = function() {
-            const qrBox = document.getElementById('qr-container');
-            const qrCodeDiv = document.getElementById('qrcode');
-            
-            if (qrBox.style.display === 'flex') {
-                qrBox.style.display = 'none';
-            } else {
-                qrBox.style.display = 'flex';
-                qrCodeDiv.innerHTML = "";
-                new QRCode(qrCodeDiv, {
-                    text: window.location.href,
-                    width: 150,
-                    height: 150
-                });
-            }
-        };
-
-        // Luu ten khi nhap
-        document.getElementById('p1-name').addEventListener('input', (e) => {
-            gameState.p1.name = e.target.value;
-            syncData();
+        // Gan su kien click cho cac vung (thay vi DOMContentLoaded o duoi)
+        document.querySelectorAll('.score-section').forEach(section => {
+            section.addEventListener('click', (event) => {
+                const value = parseInt(event.target.dataset.value);
+                // Chi xu ly neu click vao vung co data-value (top/bottom)
+                if (!isNaN(value)) {
+                    window.handleScoreClick(section.id, value);
+                } else {
+                    // Neu click vao vung trong de chuyen luot ma khong tang diem (option)
+                    // Hien tai logic goc la click vao section de chuyen luot
+                    if (state.currentPlayer !== section.id) {
+                         state.currentPlayer = section.id;
+                         state[section.id].shots++;
+                         syncState();
+                    }
+                }
+            });
         });
-        document.getElementById('p2-name').addEventListener('input', (e) => {
-            gameState.p2.name = e.target.value;
-            syncData();
+
+        // Ket thuc hiep
+        document.getElementById('endRoundBtn').addEventListener('click', () => {
+            if (state.player1.score > state.player2.score) {
+                state.player1.wins++;
+                triggerWinEffect('player1');
+            } else if (state.player2.score > state.player1.score) {
+                state.player2.wins++;
+                triggerWinEffect('player2');
+            }
+
+            state.player1.score = 0;
+            state.player1.shots = 0;
+            state.player2.score = 0;
+            state.player2.shots = 0;
+            state.currentPlayer = null;
+            state.rounds++;
+            syncState();
         });
+
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if(!confirm("Reset all?")) return;
+            state.player1.score = 0; state.player1.wins = 0; state.player1.shots = 0;
+            state.player2.score = 0; state.player2.wins = 0; state.player2.shots = 0;
+            state.rounds = 1;
+            state.currentPlayer = null;
+            syncState();
+        });
+
+        // Doi mau
+        document.getElementById('swapColorsBtn').addEventListener('click', () => {
+            state.isSwapped = !state.isSwapped;
+            syncState();
+        });
+
+        // Nhap ten
+        document.getElementById('name1').addEventListener('input', (e) => {
+            state.player1.name = e.target.value;
+            syncState();
+        });
+        document.getElementById('name2').addEventListener('input', (e) => {
+            state.player2.name = e.target.value;
+            syncState();
+        });
+
+        // QR Code
+        document.getElementById('qrBtn').addEventListener('click', () => {
+            const qrContainer = document.getElementById('qr-container');
+            const qrcodeDiv = document.getElementById('qrcode');
+            
+            qrContainer.style.display = 'flex';
+            qrcodeDiv.innerHTML = "";
+            new QRCode(qrcodeDiv, {
+                text: window.location.href,
+                width: 200,
+                height: 200
+            });
+        });
+
+        // Hieu ung thang (chay cuc bo tren moi may khi data thay doi)
+        function triggerWinEffect(winner) {
+            // Ham nay chi de tao hieu ung visual, du lieu da dong bo
+            const el = document.getElementById(winner).querySelector(`.stats.wins-${winner.slice(-1)}`);
+            el.classList.add('win-effect');
+            setTimeout(() => el.classList.remove('win-effect'), 3000);
+        }
 
     </script>
 </body>
