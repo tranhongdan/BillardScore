@@ -3,209 +3,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billiard Score App - Firebase Live</title>
+    <title>Bang Diem Bida Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
+    
     <style>
+        /* Import font chu */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
         body {
             font-family: 'Inter', sans-serif;
             background-color: #2b6cb0;
             color: white;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
             box-sizing: border-box;
         }
+
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 800px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            flex-grow: 1;
         }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
         .main-content {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            gap: 1rem;
             width: 100%;
-            position: relative;
         }
-        @media (min-width: 600px) {
-            body { flex-direction: column; justify-content: center; }
-            .main-content { flex-direction: row; justify-content: center; gap: 2rem; }
-            .button-container { flex-direction: row; margin-top: 2rem; }
+
+        @media (min-width: 768px) {
+            .main-content {
+                flex-direction: row;
+            }
         }
-        .score-section {
-            display: grid;
-            grid-template-rows: auto 1fr;
+
+        .player-card {
+            background-color: #2d3748;
             border: 2px solid #4a5568;
             border-radius: 1rem;
             overflow: hidden;
-            margin-bottom: 1rem;
-            background-color: #2d3748;
-            box-shadow: 4px 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            height: 300px;
+            flex: 1;
             position: relative;
-            flex-grow: 1;
-            transition: transform 0.3s ease-in-out;
-            transform: scale(0.9);
-            opacity: 0.8;
-        }
-        .score-section.active {
-            transform: scale(1.05);
-            border-color: #fca5a5;
-            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.4);
-            opacity: 1;
-        }
-        .score-display {
-            font-size: 10rem;
-            font-weight: bold;
-            color: #ef4444;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            z-index: 10;
-            pointer-events: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        .name-container {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0 0.5rem;
-            background-color: #2d3748;
-            z-index: 20;
+            flex-direction: column;
+            height: 350px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 0.3s;
         }
+
+        .player-card.active {
+            border-color: #fbbf24;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+            transform: scale(1.02);
+        }
+
         .name-input {
-            background: none;
+            background: transparent;
             border: none;
             color: white;
             font-size: 1.5rem;
             font-weight: bold;
             text-align: center;
-            outline: none;
-            flex-grow: 1;
-            max-width: 15ch;
-            pointer-events: none; 
-        }
-        .score-section.active .name-input { pointer-events: auto; }
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            position: absolute;
-            bottom: 0.5rem;
-            left: 0;
             width: 100%;
+            padding: 0.5rem;
+            outline: none;
+            border-bottom: 1px solid #4a5568;
             z-index: 20;
-            padding: 0 0.5rem;
         }
-        .stats {
-            font-size: 1rem;
+
+        .score-display {
+            font-size: 8rem;
             font-weight: bold;
-            color: #4a5568;
+            color: #ef4444;
             text-align: center;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+            pointer-events: none;
         }
-        .score-area {
-            display: grid;
-            grid-template-rows: 1fr 1fr;
+
+        .click-zone {
+            position: absolute;
             width: 100%;
             height: 100%;
-            position: relative;
-            background-color: transparent;
-            gap: 4px;
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 5;
         }
-        .score-area .top, .score-area .bottom { cursor: pointer; }
-        .score-area.player-1 .top, .score-area.player-1 .bottom { background-color: #fce303; }
-        .score-area.player-2 .top, .score-area.player-2 .bottom { background-color: #fff; }
-        .score-area .top:active, .score-area .bottom:active { transform: scale(0.98); }
-        .button-container {
-            display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 1rem; width: 100%; margin-top: 1rem;
+
+        .btn-up, .btn-down {
+            flex: 1;
+            width: 100%;
+            opacity: 0.1;
+            transition: opacity 0.2s;
+            cursor: pointer;
         }
-        @media (min-width: 600px) { .button-container { width: 100%; max-width: 600px; flex-direction: row; } }
-        .billiard-button {
-            width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.4); border: none; cursor: pointer; font-weight: bold; color: #2d3748;
+
+        .bg-yellow-zone { background-color: #facc15; }
+        .bg-white-zone { background-color: #ffffff; }
+
+        .btn-up:active, .btn-down:active {
+            opacity: 0.3;
         }
-        .bg-white { background-color: #fff; }
-        .bg-yellow-400 { background-color: #facc15; }
-        .bg-red-500 { background-color: #ef4444; color: white; }
-        .bg-blue-500 { background-color: #3b82f6; color: white; }
-        
-        #qrModal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 50;
+
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem;
+            background-color: rgba(0,0,0,0.2);
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #cbd5e0;
+            z-index: 20;
         }
-        #qrContent {
-            background: white; padding: 20px; border-radius: 10px; text-align: center; color: #333;
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
         }
-        #statusIndicator {
-            position: absolute; top: 10px; right: 10px; font-size: 0.8rem; color: #a3bffa;
+
+        .btn-control {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
         }
+
+        .btn-control:active { transform: scale(0.95); }
+        .btn-reset { background-color: #e2e8f0; color: #1a202c; }
+        .btn-end { background-color: #e53e3e; color: white; }
+        .btn-swap { background-color: #d69e2e; color: white; }
+        .btn-qr { background-color: #38a169; color: white; }
+
+        #qr-container {
+            margin-top: 1rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        #qr-container p { color: black; margin-bottom: 0.5rem; font-weight: bold; }
     </style>
 </head>
-<body class="bg-[#2b6cb0] text-white">
+<body>
 
-    <div id="statusIndicator">Dang ket noi...</div>
+    <div class="container">
+        <div class="header-info">
+            <h1 class="text-2xl font-bold">Bida 3 Bang</h1>
+            <div class="text-xl bg-blue-800 px-4 py-1 rounded-lg">
+                Hiep: <span id="round-count">1</span>
+            </div>
+        </div>
 
-    <div class="container mx-auto">
-        <h2 id="round-counter" class="text-xl font-bold mb-4">Round: 1</h2>
         <div class="main-content">
-            <div id="player1" class="score-section w-full">
-                <div class="name-container">
-                    <input type="text" class="name-input" id="name1" value="Player 1">
+            <div id="p1-card" class="player-card">
+                <input type="text" id="p1-name" class="name-input" value="Nguoi 1">
+                
+                <div class="click-zone" id="p1-zone">
+                    <div class="btn-up bg-yellow-zone" onclick="changeScore('p1', 1)"></div>
+                    <div class="btn-down bg-yellow-zone" onclick="changeScore('p1', -1)"></div>
                 </div>
-                <div class="stats-container player-1">
-                    <span class="stats wins-1">Win: 0</span>
-                    <span class="stats avg-1">AVG: 0.00</span>
-                    <span class="stats shots-1">Inn: 0</span>
-                </div>
-                <div class="score-area player-1">
-                    <span class="score-display" id="score1">0</span>
-                    <div class="top" data-id="player1" data-val="1"></div>
-                    <div class="bottom" data-id="player1" data-val="-1"></div>
+
+                <div class="score-display" id="p1-score">0</div>
+
+                <div class="stats-row">
+                    <span>Thang: <span id="p1-wins">0</span></span>
+                    <span>Luot co: <span id="p1-inn">0</span></span>
+                    <span>TB: <span id="p1-avg">0.00</span></span>
                 </div>
             </div>
 
-            <div id="player2" class="score-section w-full">
-                <div class="name-container">
-                    <input type="text" class="name-input" id="name2" value="Player 2">
+            <div id="p2-card" class="player-card">
+                <input type="text" id="p2-name" class="name-input" value="Nguoi 2">
+                
+                <div class="click-zone" id="p2-zone">
+                    <div class="btn-up bg-white-zone" onclick="changeScore('p2', 1)"></div>
+                    <div class="btn-down bg-white-zone" onclick="changeScore('p2', -1)"></div>
                 </div>
-                <div class="stats-container player-2">
-                    <span class="stats wins-2">Win: 0</span>
-                    <span class="stats avg-2">AVG: 0.00</span>
-                    <span class="stats shots-2">Inn: 0</span>
-                </div>
-                <div class="score-area player-2">
-                    <span class="score-display" id="score2">0</span>
-                    <div class="top" data-id="player2" data-val="1"></div>
-                    <div class="bottom" data-id="player2" data-val="-1"></div>
+
+                <div class="score-display" id="p2-score">0</div>
+
+                <div class="stats-row">
+                    <span>Thang: <span id="p2-wins">0</span></span>
+                    <span>Luot co: <span id="p2-inn">0</span></span>
+                    <span>TB: <span id="p2-avg">0.00</span></span>
                 </div>
             </div>
         </div>
-        
-        <div class="button-container">
-            <button id="resetBtn" class="billiard-button bg-white">Reset</button>
-            <button id="endRoundBtn" class="billiard-button bg-red-500">End</button>
-            <button id="swapColorsBtn" class="billiard-button bg-yellow-400">Swap</button>
-            <button id="qrBtn" class="billiard-button bg-blue-500">QR</button>
-        </div>
-    </div>
 
-    <div id="qrModal">
-        <div id="qrContent">
-            <h3 class="text-xl font-bold mb-2 text-black">Quet ma de dieu khien</h3>
-            <div id="qrCodeDiv" class="flex justify-center my-4"></div>
-            <p class="text-sm text-gray-600 mb-4">Dung camera hoac Zalo</p>
-            <button id="closeQrBtn" class="px-4 py-2 bg-red-500 text-white rounded">Dong</button>
+        <div class="controls">
+            <button class="btn-control btn-reset" onclick="resetGame()">Dat Lai (Reset)</button>
+            <button class="btn-control btn-end" onclick="endRound()">Ket Thuc Hiep</button>
+            <button class="btn-control btn-swap" onclick="swapColor()">Doi Mau Bi</button>
+            <button class="btn-control btn-qr" onclick="toggleQR()">Tao Ma QR</button>
+        </div>
+
+        <div id="qr-container">
+            <p>Quet ma de dieu khien chung:</p>
+            <div id="qrcode"></div>
         </div>
     </div>
 
@@ -213,195 +237,190 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- CAU HINH FIREBASE CHUAN ---
+        // --- CAU HINH FIREBASE CUA BAN ---
         const firebaseConfig = {
-            apiKey: "AIzaSyBoWo-lMgjQhSh1u9TfWrcccmi2-I8LNGA",
-            authDomain: "billardscore-cb6c7.firebaseapp.com",
-            // QUAN TRONG: Da them databaseURL chinh xac tu link cua ban
-            databaseURL: "https://billardscore-cb6c7-default-rtdb.firebaseio.com",
-            projectId: "billardscore-cb6c7",
-            storageBucket: "billardscore-cb6c7.firebasestorage.app",
-            messagingSenderId: "842955224618",
-            appId: "1:842955224618:web:b6c944a884cedbfd93b553"
+            apiKey: "AIzaSyAjAWxH4vaiioTvcKPDae8weW8fr0EoN7M",
+            authDomain: "blscore.firebaseapp.com",
+            databaseURL: "https://blscore-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "blscore",
+            storageBucket: "blscore.firebasestorage.app",
+            messagingSenderId: "444177467821",
+            appId: "1:444177467821:web:b3b3c78ecc029d06f4f924"
         };
 
         // Khoi tao Firebase
-        let app, db, matchRef;
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getDatabase(app);
-        } catch (e) {
-            console.error("Loi Config Firebase", e);
-            document.getElementById('statusIndicator').textContent = "Loi Config!";
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        // --- LOGIC LAY MATCH ID ---
+        // --- QUAN LY ROOM ID ---
         const urlParams = new URLSearchParams(window.location.search);
-        let matchId = urlParams.get('m');
+        let roomId = urlParams.get('room');
 
-        if (!matchId) {
-            // Tao ID ngau nhien
-            matchId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            window.history.replaceState({}, '', `?m=${matchId}`);
+        // Tu dong tao Room ID neu chua co
+        if (!roomId) {
+            roomId = Math.random().toString(36).substring(2, 7).toUpperCase();
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?room=' + roomId;
+            window.history.pushState({path: newUrl}, '', newUrl);
         }
-        
-        // Ket noi Database
-        matchRef = ref(db, 'matches/' + matchId);
 
-        // State mac dinh
-        let localState = {
-            p1: { score: 0, wins: 0, shots: 0 },
-            p2: { score: 0, wins: 0, shots: 0 },
-            names: { p1: "Player 1", p2: "Player 2" },
+        const roomRef = ref(db, 'phong_choi/' + roomId);
+
+        // --- STATE MAC DINH ---
+        let gameState = {
             round: 1,
-            turn: null, 
-            colorSwap: false
+            swapped: false,
+            activePlayer: null,
+            p1: { name: "Nguoi 1", score: 0, wins: 0, innings: 0 },
+            p2: { name: "Nguoi 2", score: 0, wins: 0, innings: 0 }
         };
 
-        // --- DONG BO DU LIEU (LIVE SYNC) ---
-        onValue(matchRef, (snapshot) => {
+        // --- DONG BO DU LIEU ---
+        
+        // Day du lieu len Server
+        function syncData() {
+            set(roomRef, gameState);
+        }
+
+        // Lang nghe du lieu tu Server
+        onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                localState = data;
-                updateUI();
-                const statusDiv = document.getElementById('statusIndicator');
-                statusDiv.textContent = "Da ket noi: " + matchId;
-                statusDiv.style.color = "#4ade80"; // Mau xanh la
+                gameState = data;
+                renderUI();
             } else {
-                // Chua co du lieu thi day len server
-                set(matchRef, localState);
+                syncData(); // Tao phong moi
             }
-        }, (error) => {
-            console.error("Loi ket noi Firebase:", error);
-            const statusDiv = document.getElementById('statusIndicator');
-            statusDiv.textContent = "Loi quyen truy cap!";
-            statusDiv.style.color = "red";
-            alert("Loi: Vui long bat che do Test Mode trong Firebase Console (Tab Rules).");
         });
 
         // --- CAP NHAT GIAO DIEN ---
-        function updateUI() {
-            // Diem so
-            document.getElementById('score1').textContent = localState.p1.score;
-            document.getElementById('score2').textContent = localState.p2.score;
-            
+        function renderUI() {
             // Ten
-            if(document.activeElement.id !== 'name1') document.getElementById('name1').value = localState.names.p1;
-            if(document.activeElement.id !== 'name2') document.getElementById('name2').value = localState.names.p2;
+            document.getElementById('p1-name').value = gameState.p1.name;
+            document.getElementById('p2-name').value = gameState.p2.name;
 
-            // Thong ke
-            updateStats('p1', '1');
-            updateStats('p2', '2');
+            // Diem
+            document.getElementById('p1-score').textContent = gameState.p1.score;
+            document.getElementById('p2-score').textContent = gameState.p2.score;
 
-            // Round
-            document.getElementById('round-counter').textContent = `Round: ${localState.round}`;
+            // Thong so
+            document.getElementById('p1-wins').textContent = gameState.p1.wins;
+            document.getElementById('p2-wins').textContent = gameState.p2.wins;
+            document.getElementById('p1-inn').textContent = gameState.p1.innings;
+            document.getElementById('p2-inn').textContent = gameState.p2.innings;
 
-            // Luot danh (hieu ung sang)
-            document.getElementById('player1').classList.remove('active');
-            document.getElementById('player2').classList.remove('active');
-            if (localState.turn === 'p1') document.getElementById('player1').classList.add('active');
-            if (localState.turn === 'p2') document.getElementById('player2').classList.add('active');
+            // Diem trung binh
+            let avg1 = gameState.p1.innings > 0 ? (gameState.p1.score / gameState.p1.innings).toFixed(2) : "0.00";
+            let avg2 = gameState.p2.innings > 0 ? (gameState.p2.score / gameState.p2.innings).toFixed(2) : "0.00";
+            document.getElementById('p1-avg').textContent = avg1;
+            document.getElementById('p2-avg').textContent = avg2;
 
-            // Doi mau (Swap)
-            const p1Area = document.querySelector('.score-area.player-1');
-            const p2Area = document.querySelector('.score-area.player-2');
+            document.getElementById('round-count').textContent = gameState.round;
+
+            // Mau sac bi
+            const zone1 = document.getElementById('p1-zone').children;
+            const zone2 = document.getElementById('p2-zone').children;
             
-            p1Area.className = "score-area player-1";
-            p2Area.className = "score-area player-2";
+            if (gameState.swapped) {
+                updateColorClass(zone1, 'bg-white-zone', 'bg-yellow-zone');
+                updateColorClass(zone2, 'bg-yellow-zone', 'bg-white-zone');
+            } else {
+                updateColorClass(zone1, 'bg-yellow-zone', 'bg-white-zone');
+                updateColorClass(zone2, 'bg-white-zone', 'bg-yellow-zone');
+            }
 
-            if (localState.colorSwap) {
-                p1Area.classList.remove('player-1'); p1Area.classList.add('player-2');
-                p2Area.classList.remove('player-2'); p2Area.classList.add('player-1');
+            // Hieu ung Active
+            document.getElementById('p1-card').classList.remove('active');
+            document.getElementById('p2-card').classList.remove('active');
+            
+            if (gameState.activePlayer === 'p1') {
+                document.getElementById('p1-card').classList.add('active');
+            } else if (gameState.activePlayer === 'p2') {
+                document.getElementById('p2-card').classList.add('active');
             }
         }
 
-        function updateStats(pKey, suffix) {
-            const s = localState[pKey];
-            document.querySelector(`.stats.wins-${suffix}`).textContent = `Win: ${s.wins}`;
-            document.querySelector(`.stats.shots-${suffix}`).textContent = `Inn: ${s.shots}`;
-            let avg = s.shots > 0 ? (s.score / s.shots).toFixed(2) : "0.00";
-            document.querySelector(`.stats.avg-${suffix}`).textContent = `AVG: ${avg}`;
+        function updateColorClass(elements, addClass, removeClass) {
+            for (let el of elements) {
+                el.classList.add(addClass);
+                el.classList.remove(removeClass);
+            }
         }
 
-        // --- GUI DU LIEU LEN SERVER ---
-        function pushState() {
-            update(matchRef, localState);
-        }
+        // --- HAM GLOBAL (GOI TU HTML) ---
 
-        // --- XU LY CLICK ---
-        
-        // 1. Click tang/giam diem
-        const handleScore = (pKey, val) => {
-            if (localState.turn !== pKey) {
-                localState.turn = pKey;
-                localState[pKey].shots += 1;
+        window.changeScore = function(player, delta) {
+            if (gameState.activePlayer !== player) {
+                gameState.activePlayer = player;
+                gameState[player].innings += 1;
             }
             
-            if (val !== 0) {
-                let newScore = localState[pKey].score + val;
-                if (newScore < 0) newScore = 0;
-                localState[pKey].score = newScore;
-            }
-            pushState();
+            let newScore = gameState[player].score + delta;
+            if (newScore < 0) newScore = 0;
+            
+            gameState[player].score = newScore;
+            syncData();
         };
 
-        document.querySelectorAll('.top, .bottom').forEach(el => {
-            el.addEventListener('click', (e) => {
-                const pid = e.target.getAttribute('data-id') === 'player1' ? 'p1' : 'p2';
-                const val = parseInt(e.target.getAttribute('data-val'));
-                handleScore(pid, val);
-            });
-        });
+        window.endRound = function() {
+            if (!confirm("Ban co chac muon ket thuc hiep nay?")) return;
 
-        // 2. Nut chuc nang
-        document.getElementById('endRoundBtn').addEventListener('click', () => {
-            if (localState.p1.score > localState.p2.score) localState.p1.wins++;
-            else if (localState.p2.score > localState.p1.score) localState.p2.wins++;
+            if (gameState.p1.score > gameState.p2.score) {
+                gameState.p1.wins++;
+            } else if (gameState.p2.score > gameState.p1.score) {
+                gameState.p2.wins++;
+            }
+
+            gameState.p1.score = 0;
+            gameState.p1.innings = 0;
+            gameState.p2.score = 0;
+            gameState.p2.innings = 0;
+            gameState.activePlayer = null;
+            gameState.round++;
             
-            localState.p1.score = 0;
-            localState.p1.shots = 0;
-            localState.p2.score = 0;
-            localState.p2.shots = 0;
-            localState.turn = null;
-            localState.round++;
-            pushState();
-        });
-
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            if(!confirm("Xoa toan bo du lieu?")) return;
-            localState.p1 = { score: 0, wins: 0, shots: 0 };
-            localState.p2 = { score: 0, wins: 0, shots: 0 };
-            localState.round = 1;
-            localState.turn = null;
-            localState.colorSwap = false;
-            pushState();
-        });
-
-        document.getElementById('swapColorsBtn').addEventListener('click', () => {
-            localState.colorSwap = !localState.colorSwap;
-            pushState();
-        });
-
-        // 3. Doi ten
-        const handleNameChange = (e) => {
-            const pKey = e.target.id === 'name1' ? 'p1' : 'p2';
-            localState.names[pKey] = e.target.value;
-            pushState();
+            syncData();
         };
-        document.getElementById('name1').addEventListener('change', handleNameChange);
-        document.getElementById('name2').addEventListener('change', handleNameChange);
 
-        // 4. Ma QR
-        document.getElementById('qrBtn').addEventListener('click', () => {
-            const qrDiv = document.getElementById('qrCodeDiv');
-            qrDiv.innerHTML = "";
-            const url = window.location.href;
-            new QRCode(qrDiv, { text: url, width: 200, height: 200 });
-            document.getElementById('qrModal').style.display = 'flex';
+        window.resetGame = function() {
+            if (!confirm("Xoa toan bo du lieu va choi lai tu dau?")) return;
+            
+            gameState.round = 1;
+            gameState.activePlayer = null;
+            gameState.p1.score = 0; gameState.p1.wins = 0; gameState.p1.innings = 0;
+            gameState.p2.score = 0; gameState.p2.wins = 0; gameState.p2.innings = 0;
+            
+            syncData();
+        };
+
+        window.swapColor = function() {
+            gameState.swapped = !gameState.swapped;
+            syncData();
+        };
+
+        window.toggleQR = function() {
+            const qrBox = document.getElementById('qr-container');
+            const qrCodeDiv = document.getElementById('qrcode');
+            
+            if (qrBox.style.display === 'flex') {
+                qrBox.style.display = 'none';
+            } else {
+                qrBox.style.display = 'flex';
+                qrCodeDiv.innerHTML = "";
+                new QRCode(qrCodeDiv, {
+                    text: window.location.href,
+                    width: 150,
+                    height: 150
+                });
+            }
+        };
+
+        // Luu ten khi nhap
+        document.getElementById('p1-name').addEventListener('input', (e) => {
+            gameState.p1.name = e.target.value;
+            syncData();
         });
-
-        document.getElementById('closeQrBtn').addEventListener('click', () => {
-            document.getElementById('qrModal').style.display = 'none';
+        document.getElementById('p2-name').addEventListener('input', (e) => {
+            gameState.p2.name = e.target.value;
+            syncData();
         });
 
     </script>
