@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Billiard Score App - Firebase</title>
+    <title>Billiard Score App - Firebase Live</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -95,7 +95,7 @@
             outline: none;
             flex-grow: 1;
             max-width: 15ch;
-            pointer-events: none; /* Chi cho phep sua khi active */
+            pointer-events: none; 
         }
         .score-section.active .name-input { pointer-events: auto; }
         .stats-container {
@@ -154,7 +154,7 @@
 </head>
 <body class="bg-[#2b6cb0] text-white">
 
-    <div id="statusIndicator">Connecting...</div>
+    <div id="statusIndicator">Dang ket noi...</div>
 
     <div class="container mx-auto">
         <h2 id="round-counter" class="text-xl font-bold mb-4">Round: 1</h2>
@@ -202,10 +202,10 @@
 
     <div id="qrModal">
         <div id="qrContent">
-            <h3 class="text-xl font-bold mb-2 text-black">Scan Code</h3>
+            <h3 class="text-xl font-bold mb-2 text-black">Quet ma de dieu khien</h3>
             <div id="qrCodeDiv" class="flex justify-center my-4"></div>
-            <p class="text-sm text-gray-600 mb-4">Dieu khien bang dien thoai</p>
-            <button id="closeQrBtn" class="px-4 py-2 bg-red-500 text-white rounded">Close</button>
+            <p class="text-sm text-gray-600 mb-4">Dung camera hoac Zalo</p>
+            <button id="closeQrBtn" class="px-4 py-2 bg-red-500 text-white rounded">Dong</button>
         </div>
     </div>
 
@@ -213,16 +213,17 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- CAU HINH FIREBASE (THAY DOI PHAN NAY) ---
-        // Ban hay copy config tu Firebase Console va dan vao day
+        // --- CAU HINH FIREBASE CHUAN ---
         const firebaseConfig = {
-  apiKey: "AIzaSyBoWo-lMgjQhSh1u9TfWrcccmi2-I8LNGA",
-  authDomain: "billardscore-cb6c7.firebaseapp.com",
-  projectId: "billardscore-cb6c7",
-  storageBucket: "billardscore-cb6c7.firebasestorage.app",
-  messagingSenderId: "842955224618",
-  appId: "1:842955224618:web:b6c944a884cedbfd93b553"
-};
+            apiKey: "AIzaSyBoWo-lMgjQhSh1u9TfWrcccmi2-I8LNGA",
+            authDomain: "billardscore-cb6c7.firebaseapp.com",
+            // QUAN TRONG: Da them databaseURL chinh xac tu link cua ban
+            databaseURL: "https://billardscore-cb6c7-default-rtdb.firebaseio.com",
+            projectId: "billardscore-cb6c7",
+            storageBucket: "billardscore-cb6c7.firebasestorage.app",
+            messagingSenderId: "842955224618",
+            appId: "1:842955224618:web:b6c944a884cedbfd93b553"
+        };
 
         // Khoi tao Firebase
         let app, db, matchRef;
@@ -230,22 +231,21 @@
             app = initializeApp(firebaseConfig);
             db = getDatabase(app);
         } catch (e) {
-            console.error("Loi Firebase Config", e);
-            document.getElementById('statusIndicator').textContent = "Config Error!";
+            console.error("Loi Config Firebase", e);
+            document.getElementById('statusIndicator').textContent = "Loi Config!";
         }
 
-        // --- LOGIC MA TRAN DAU (Match ID) ---
+        // --- LOGIC LAY MATCH ID ---
         const urlParams = new URLSearchParams(window.location.search);
         let matchId = urlParams.get('m');
 
         if (!matchId) {
-            // Tao ID ngau nhien neu chua co
+            // Tao ID ngau nhien
             matchId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            // Them vao URL ma khong reload
             window.history.replaceState({}, '', `?m=${matchId}`);
         }
         
-        // Reference toi DB
+        // Ket noi Database
         matchRef = ref(db, 'matches/' + matchId);
 
         // State mac dinh
@@ -254,56 +254,62 @@
             p2: { score: 0, wins: 0, shots: 0 },
             names: { p1: "Player 1", p2: "Player 2" },
             round: 1,
-            turn: null, // "p1" hoac "p2"
+            turn: null, 
             colorSwap: false
         };
 
-        // --- DONG BO DU LIEU (SYNC) ---
+        // --- DONG BO DU LIEU (LIVE SYNC) ---
         onValue(matchRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 localState = data;
                 updateUI();
-                document.getElementById('statusIndicator').textContent = "Live: " + matchId;
+                const statusDiv = document.getElementById('statusIndicator');
+                statusDiv.textContent = "Da ket noi: " + matchId;
+                statusDiv.style.color = "#4ade80"; // Mau xanh la
             } else {
-                // Neu chua co data tren server, day data mac dinh len
+                // Chua co du lieu thi day len server
                 set(matchRef, localState);
             }
+        }, (error) => {
+            console.error("Loi ket noi Firebase:", error);
+            const statusDiv = document.getElementById('statusIndicator');
+            statusDiv.textContent = "Loi quyen truy cap!";
+            statusDiv.style.color = "red";
+            alert("Loi: Vui long bat che do Test Mode trong Firebase Console (Tab Rules).");
         });
 
-        // --- HAM CAP NHAT GIAO DIEN (UI) ---
+        // --- CAP NHAT GIAO DIEN ---
         function updateUI() {
-            // Cap nhat diem
+            // Diem so
             document.getElementById('score1').textContent = localState.p1.score;
             document.getElementById('score2').textContent = localState.p2.score;
             
-            // Cap nhat ten
+            // Ten
             if(document.activeElement.id !== 'name1') document.getElementById('name1').value = localState.names.p1;
             if(document.activeElement.id !== 'name2') document.getElementById('name2').value = localState.names.p2;
 
-            // Cap nhat stats
+            // Thong ke
             updateStats('p1', '1');
             updateStats('p2', '2');
 
-            // Cap nhat Round
+            // Round
             document.getElementById('round-counter').textContent = `Round: ${localState.round}`;
 
-            // Active Player (Mau vien sang)
+            // Luot danh (hieu ung sang)
             document.getElementById('player1').classList.remove('active');
             document.getElementById('player2').classList.remove('active');
             if (localState.turn === 'p1') document.getElementById('player1').classList.add('active');
             if (localState.turn === 'p2') document.getElementById('player2').classList.add('active');
 
-            // Swap Colors
+            // Doi mau (Swap)
             const p1Area = document.querySelector('.score-area.player-1');
             const p2Area = document.querySelector('.score-area.player-2');
             
-            // Reset class
             p1Area.className = "score-area player-1";
             p2Area.className = "score-area player-2";
 
             if (localState.colorSwap) {
-                // Logic dao nguoc mau
                 p1Area.classList.remove('player-1'); p1Area.classList.add('player-2');
                 p2Area.classList.remove('player-2'); p2Area.classList.add('player-1');
             }
@@ -317,16 +323,15 @@
             document.querySelector(`.stats.avg-${suffix}`).textContent = `AVG: ${avg}`;
         }
 
-        // --- HAM GUI DU LIEU LEN SERVER ---
+        // --- GUI DU LIEU LEN SERVER ---
         function pushState() {
             update(matchRef, localState);
         }
 
-        // --- XU LY SU KIEN CLICK ---
+        // --- XU LY CLICK ---
         
-        // 1. Click vao vung diem
+        // 1. Click tang/giam diem
         const handleScore = (pKey, val) => {
-            // Chuyen luot neu can
             if (localState.turn !== pKey) {
                 localState.turn = pKey;
                 localState[pKey].shots += 1;
@@ -340,7 +345,6 @@
             pushState();
         };
 
-        // Gan su kien click cho cac vung
         document.querySelectorAll('.top, .bottom').forEach(el => {
             el.addEventListener('click', (e) => {
                 const pid = e.target.getAttribute('data-id') === 'player1' ? 'p1' : 'p2';
@@ -349,13 +353,11 @@
             });
         });
 
-        // 2. Click cac nut chuc nang
+        // 2. Nut chuc nang
         document.getElementById('endRoundBtn').addEventListener('click', () => {
-            // Tinh thang thua
             if (localState.p1.score > localState.p2.score) localState.p1.wins++;
             else if (localState.p2.score > localState.p1.score) localState.p2.wins++;
             
-            // Reset diem cho van moi
             localState.p1.score = 0;
             localState.p1.shots = 0;
             localState.p2.score = 0;
@@ -366,7 +368,7 @@
         });
 
         document.getElementById('resetBtn').addEventListener('click', () => {
-            if(!confirm("Reset all data?")) return;
+            if(!confirm("Xoa toan bo du lieu?")) return;
             localState.p1 = { score: 0, wins: 0, shots: 0 };
             localState.p2 = { score: 0, wins: 0, shots: 0 };
             localState.round = 1;
@@ -380,7 +382,7 @@
             pushState();
         });
 
-        // 3. Thay doi ten
+        // 3. Doi ten
         const handleNameChange = (e) => {
             const pKey = e.target.id === 'name1' ? 'p1' : 'p2';
             localState.names[pKey] = e.target.value;
@@ -389,7 +391,7 @@
         document.getElementById('name1').addEventListener('change', handleNameChange);
         document.getElementById('name2').addEventListener('change', handleNameChange);
 
-        // 4. QR Code
+        // 4. Ma QR
         document.getElementById('qrBtn').addEventListener('click', () => {
             const qrDiv = document.getElementById('qrCodeDiv');
             qrDiv.innerHTML = "";
@@ -405,4 +407,3 @@
     </script>
 </body>
 </html>
-
